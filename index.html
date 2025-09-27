@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FHEVM dApp Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.2/dist/web3.min.js"></script>
+    <!-- FHEVM 客户端库 -->
+    <script src="https://cdn.jsdelivr.net/npm/@zama-ai/fhevmjs@0.2.1/dist/fhevm.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <header class="bg-blue-600 text-white p-4 shadow-lg">
+        <div class="container mx-auto">
+            <h1 class="text-2xl font-bold flex items-center">
+                <i class="fa fa-lock mr-2"></i> FHEVM dApp Demo
+            </h1>
+            <p class="text-blue-100">隐私保护的区块链计算应用</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6">
+        <!-- 连接钱包部分 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-wallet mr-2 text-blue-500"></i> 钱包连接
+            </h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <button id="connectWallet" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                    <i class="fa fa-plug mr-2"></i> 连接钱包
+                </button>
+                <div id="walletStatus" class="flex-1 flex items-center justify-center p-2 border border-gray-200 rounded-md">
+                    未连接
+                </div>
+            </div>
+        </div>
+
+        <!-- 加密计算部分 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- 存储加密值 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fa fa-save mr-2 text-green-500"></i> 存储加密值
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="valueToStore" class="block text-gray-700 mb-1">输入要存储的数值:</label>
+                        <input type="number" id="valueToStore" class="w-full p-2 border border-gray-300 rounded-md" placeholder="例如: 42">
+                    </div>
+                    <button id="storeValue" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md transition duration-300">
+                        加密并存储
+                    </button>
+                </div>
+            </div>
+
+            <!-- 获取当前值 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fa fa-retrieve mr-2 text-purple-500"></i> 获取当前值
+                </h2>
+                <div class="space-y-4">
+                    <button id="retrieveValue" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-md transition duration-300">
+                        获取我的加密值
+                    </button>
+                    <div>
+                        <label class="block text-gray-700 mb-1">解密后的值:</label>
+                        <div id="decryptedValue" class="w-full p-2 border border-gray-300 rounded-md min-h-[40px] bg-gray-50">
+                            未获取
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 计算操作部分 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <!-- 加法操作 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fa fa-plus mr-2 text-orange-500"></i> 加密加法
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="addValue" class="block text-gray-700 mb-1">输入要添加的数值:</label>
+                        <input type="number" id="addValue" class="w-full p-2 border border-gray-300 rounded-md" placeholder="例如: 10">
+                    </div>
+                    <button id="performAddition" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-md transition duration-300">
+                        执行加密加法
+                    </button>
+                </div>
+            </div>
+
+            <!-- 乘法操作 -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4 flex items-center">
+                    <i class="fa fa-times mr-2 text-red-500"></i> 加密乘法
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="multiplyValue" class="block text-gray-700 mb-1">输入要相乘的数值:</label>
+                        <input type="number" id="multiplyValue" class="w-full p-2 border border-gray-300 rounded-md" placeholder="例如: 2">
+                    </div>
+                    <button id="performMultiplication" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition duration-300">
+                        执行加密乘法
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 比较操作 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-balance-scale mr-2 text-teal-500"></i> 加密比较
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="compareValue1" class="block text-gray-700 mb-1">数值 1:</label>
+                    <input type="number" id="compareValue1" class="w-full p-2 border border-gray-300 rounded-md" placeholder="例如: 50">
+                </div>
+                <div>
+                    <label for="compareValue2" class="block text-gray-700 mb-1">数值 2:</label>
+                    <input type="number" id="compareValue2" class="w-full p-2 border border-gray-300 rounded-md" placeholder="例如: 50">
+                </div>
+            </div>
+            <div class="mt-4">
+                <button id="performComparison" class="w-full bg-teal-500 hover:bg-teal-600 text-white py-2 px-4 rounded-md transition duration-300">
+                    比较两个加密值是否相等
+                </button>
+            </div>
+            <div class="mt-4">
+                <label class="block text-gray-700 mb-1">比较结果:</label>
+                <div id="comparisonResult" class="w-full p-2 border border-gray-300 rounded-md min-h-[40px] bg-gray-50">
+                    未比较
+                </div>
+            </div>
+        </div>
+
+        <!-- 交易历史 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fa fa-history mr-2 text-gray-500"></i> 交易历史
+            </h2>
+            <div id="transactionHistory" class="space-y-2 max-h-60 overflow-y-auto">
+                <div class="text-gray-500 italic text-center py-4">暂无交易记录</div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-gray-800 text-white p-4 mt-8">
+        <div class="container mx-auto text-center">
+            <p>基于 FHEVM 技术的隐私保护 dApp 演示</p>
+            <p class="text-sm text-gray-400 mt-1">参考 <a href="https://docs.zama.ai/programs/developer-program" class="text-blue-300 hover:underline">Zama 开发者文档</a></p>
+        </div>
+    </footer>
+
+    <!-- 通知组件 -->
+    <div id="notification" class="fixed bottom-4 right-4 p-4 rounded-md shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 max-w-sm hidden"></div>
+
+    <script>
+        // 合约ABI (简化版，实际使用时需要完整ABI)
+        const contractABI = [
+            {
+                "inputs": [{"internalType": "bytes", "name": "encryptedValue", "type": "bytes"}],
+                "name": "storeEncryptedValue",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getMyEncryptedValue",
+                "outputs": [{"internalType": "bytes", "name": "", "type": "bytes"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "bytes", "name": "encryptedAddend", "type": "bytes"}],
+                "name": "addEncryptedValue",
+                "outputs": [{"internalType": "bytes", "name": "", "type": "bytes"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "bytes", "name": "encryptedMultiplier", "type": "bytes"}],
+                "name": "multiplyEncryptedValue",
+                "outputs": [{"internalType": "bytes", "name": "", "type": "bytes"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {"internalType": "bytes", "name": "a", "type": "bytes"},
+                    {"internalType": "bytes", "name": "b", "type": "bytes"}
+                ],
+                "name": "compareEncryptedValues",
+                "outputs": [{"internalType": "bytes", "name": "", "type": "bytes"}],
+                "stateMutability": "pure",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
+                    {"indexed": false, "internalType": "string", "name": "message", "type": "string"}
+                ],
+                "name": "ValueStored",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {"indexed": true, "internalType": "address", "name": "user", "type": "address"},
+                    {"indexed": false, "internalType": "string", "name": "operation", "type": "string"},
+                    {"indexed": false, "internalType": "string", "name": "result", "type": "string"}
+                ],
+                "name": "CalculationPerformed",
+                "type": "event"
+            }
+        ];
+
+        // 合约地址 (实际部署后替换)
+        const contractAddress = "0x1234567890abcdef1234567890abcdef12345678";
+
+        // 全局变量
+        let web3;
+        let account;
+        let contract;
+        let fhevm;
+        let publicKey;
+
+        // DOM 元素
+        const connectWalletBtn = document.getElementById('connectWallet');
+        const walletStatus = document.getElementById('walletStatus');
+        const storeValueBtn = document.getElementById('storeValue');
+        const retrieveValueBtn = document.getElementById('retrieveValue');
+        const decryptedValue = document.getElementById('decryptedValue');
+        const performAdditionBtn = document.getElementById('performAddition');
+        const performMultiplicationBtn = document.getElementById('performMultiplication');
+        const performComparisonBtn = document.getElementById('performComparison');
+        const comparisonResult = document.getElementById('comparisonResult');
+        const transactionHistory = document.getElementById('transactionHistory');
+        const notification = document.getElementById('notification');
+
+        // 初始化
+        async function init() {
+            // 检查是否有MetaMask等钱包
+            if (window.ethereum) {
+                try {
+                    // 检测链是否为支持FHEVM的网络
+                    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                    if (chainId !== '0x539') { // 本地测试网链ID，实际使用时替换
+                        showNotification('请切换到支持FHEVM的网络', 'warning');
+                    }
+                } catch (error) {
+                    console.error('Error checking chain:', error);
+                }
+            } else {
+                showNotification('请安装MetaMask等以太坊钱包', 'error');
+            }
+
+            // 初始化FHEVM
+            try {
+                fhevm = await FHEVM.createInstance({
+                    chainId: 1337 // 测试网链ID，实际使用时替换
+                });
+                console.log('FHEVM initialized');
+            } catch (error) {
+                console.error('Error initializing FHEVM:', error);
+                showNotification('FHEVM初始化失败', 'error');
+            }
+        }
+
+        // 连接钱包
+        connectWalletBtn.addEventListener('click', async () => {
+            if (window.ethereum) {
+                try {
+                    // 请求账户访问
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    account = accounts[0];
+                    
+                    // 初始化Web3
+                    web3 = new Web3(window.ethereum);
+                    
+                    // 初始化合约
+                    contract = new web3.eth.Contract(contractABI, contractAddress);
+                    
+                    // 获取公钥用于加密
+                    publicKey = await fhevm.getPublicKey({
+                        address: account,
+                        contractAddress: contractAddress
+                    });
+                    
+                    // 更新UI
+                    walletStatus.textContent = `${account.substring(0, 6)}...${account.substring(38)}`;
+                    showNotification('钱包连接成功', 'success');
+                    
+                    // 监听账户变化
+                    window.ethereum.on('accountsChanged', (accounts) => {
+                        account = accounts[0];
+                        walletStatus.textContent = account ? `${account.substring(0, 6)}...${account.substring(38)}` : '未连接';
+                    });
+                    
+                    // 监听链变化
+                    window.ethereum.on('chainChanged', () => {
+                        window.location.reload();
+                    });
+
+                    // 监听合约事件
+                    setupEventListeners();
+                    
+                } catch (error) {
+                    console.error('Error connecting wallet:', error);
+                    showNotification('钱包连接失败', 'error');
+                }
+            } else {
+                showNotification('请安装MetaMask等以太坊钱包', 'error');
+            }
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 监听值存储事件
+            contract.events.ValueStored({ fromBlock: 'latest' })
+                .on('data', (event) => {
+                    addToHistory(`存储了新的加密值: ${event.returnValues.message}`);
+                })
+                .on('error', (error) => {
+                    console.error('ValueStored event error:', error);
+                });
+            
+            // 监听计算事件
+            contract.events.CalculationPerformed({ fromBlock: 'latest' })
+                .on('data', (event) => {
+                    addToHistory(`执行了${event.returnValues.operation}: ${event.returnValues.result}`);
+                })
+                .on('error', (error) => {
+                    console.error('CalculationPerformed event error:', error);
+                });
+        }
+
+        // 存储加密值
+        storeValueBtn.addEventListener('click', async () => {
+            if (!account) {
+                showNotification('请先连接钱包', 'warning');
+                return;
+            }
+            
+            const value = document.getElementById('valueToStore').value;
+            if (!value || isNaN(value)) {
+                showNotification('请输入有效的数值', 'warning');
+                return;
+            }
+            
+            try {
+                // 加密数值
+                const encryptedValue = await fhevm.encrypt32(publicKey, parseInt(value));
+                
+                // 调用合约存储加密值
+                const result = await contract.methods.storeEncryptedValue(encryptedValue)
+                    .send({ from: account });
+                
+                showNotification('值已成功加密并存储', 'success');
+                document.getElementById('valueToStore').value = '';
+                
+            } catch (error) {
+                console.error('Error storing value:', error);
+                showNotification('存储失败: ' + error.message, 'error');
+            }
+        });
+
+        // 获取并解密值
+        retrieveValueBtn.addEventListener('click', async () => {
+            if (!account) {
+                showNotification('请先连接钱包', 'warning');
+                return;
+            }
+            
+            try {
+                // 从合约获取加密值
+                const encryptedValue = await contract.methods.getMyEncryptedValue().call({ from: account });
+                
+                if (!encryptedValue) {
+                    showNotification('未找到存储的值', 'warning');
+                    return;
+                }
+                
+                // 解密值
+                const decrypted = await fhevm.decrypt32(account, encryptedValue);
+                
+                // 显示结果
+                decryptedValue.textContent = decrypted.toString();
+                showNotification('值已成功获取并解密', 'success');
+                
+            } catch (error) {
+                console.error('Error retrieving value:', error);
+                showNotification('获取失败: ' + error.message, 'error');
+            }
+        });
+
+        // 执行加密加法
+        performAdditionBtn.addEventListener('click', async () => {
+            if (!account) {
+                showNotification('请先连接钱包', 'warning');
+                return;
+            }
+            
+            const value = document.getElementById('addValue').value;
+            if (!value || isNaN(value)) {
+                showNotification('请输入有效的数值', 'warning');
+                return;
+            }
+            
+            try {
+                // 加密要添加的数值
+                const encryptedAddend = await fhevm.encrypt32(publicKey, parseInt(value));
+                
+                // 调用合约执行加法
+                await contract.methods.addEncryptedValue(encryptedAddend)
+                    .send({ from: account });
+                
+                showNotification('加密加法执行成功', 'success');
+                document.getElementById('addValue').value = '';
+                
+            } catch (error) {
+                console.error('Error performing addition:', error);
+                showNotification('加法执行失败: ' + error.message, 'error');
+            }
+        });
+
+        // 执行加密乘法
+        performMultiplicationBtn.addEventListener('click', async () => {
+            if (!account) {
+                showNotification('请先连接钱包', 'warning');
+                return;
+            }
+            
+            const value = document.getElementById('multiplyValue').value;
+            if (!value || isNaN(value)) {
+                showNotification('请输入有效的数值', 'warning');
+                return;
+            }
+            
+            try {
+                // 加密要相乘的数值
+                const encryptedMultiplier = await fhevm.encrypt32(publicKey, parseInt(value));
+                
+                // 调用合约执行乘法
+                await contract.methods.multiplyEncryptedValue(encryptedMultiplier)
+                    .send({ from: account });
+                
+                showNotification('加密乘法执行成功', 'success');
+                document.getElementById('multiplyValue').value = '';
+                
+            } catch (error) {
+                console.error('Error performing multiplication:', error);
+                showNotification('乘法执行失败: ' + error.message, 'error');
+            }
+        });
+
+        // 执行加密比较
+        performComparisonBtn.addEventListener('click', async () => {
+            if (!account) {
+                showNotification('请先连接钱包', 'warning');
+                return;
+            }
+            
+            const value1 = document.getElementById('compareValue1').value;
+            const value2 = document.getElementById('compareValue2').value;
+            
+            if (!value1 || !value2 || isNaN(value1) || isNaN(value2)) {
+                showNotification('请输入两个有效的数值', 'warning');
+                return;
+            }
+            
+            try {
+                // 加密两个数值
+                const encrypted1 = await fhevm.encrypt32(publicKey, parseInt(value1));
+                const encrypted2 = await fhevm.encrypt32(publicKey, parseInt(value2));
+                
+                // 调用合约执行比较
+                const encryptedResult = await contract.methods.compareEncryptedValues(encrypted1, encrypted2)
+                    .call({ from: account });
+                
+                // 解密比较结果
+                const result = await fhevm.decryptBool(account, encryptedResult);
+                
+                // 显示结果
+                comparisonResult.textContent = result ? '两个数值相等' : '两个数值不相等';
+                showNotification('加密比较执行成功', 'success');
+                
+            } catch (error) {
+                console.error('Error performing comparison:', error);
+                showNotification('比较执行失败: ' + error.message, 'error');
+            }
+        });
+
+        // 添加到交易历史
+        function addToHistory(message) {
+            const historyItem = document.createElement('div');
+            historyItem.className = 'p-3 border border-gray-100 rounded-md bg-gray-50';
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'text-xs text-gray-500 mr-2';
+            timeSpan.textContent = new Date().toLocaleTimeString();
+            
+            const messageSpan = document.createElement('span');
+            messageSpan.textContent = message;
+            
+            historyItem.appendChild(timeSpan);
+            historyItem.appendChild(messageSpan);
+            
+            // 如果是第一条记录，先清空"暂无交易记录"提示
+            if (transactionHistory.querySelector('.italic')) {
+                transactionHistory.innerHTML = '';
+            }
+            
+            transactionHistory.prepend(historyItem);
+        }
+
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 设置样式
+            notification.className = 'fixed bottom-4 right-4 p-4 rounded-md shadow-lg transform translate-y-0 opacity-100 transition-all duration-300 max-w-sm';
+            
+            switch(type) {
+                case 'success':
+                    notification.classList.add('bg-green-500', 'text-white');
+                    notification.innerHTML = `<i class="fa fa-check-circle mr-2"></i> ${message}`;
+                    break;
+                case 'error':
+                    notification.classList.add('bg-red-500', 'text-white');
+                    notification.innerHTML = `<i class="fa fa-exclamation-circle mr-2"></i> ${message}`;
+                    break;
+                case 'warning':
+                    notification.classList.add('bg-yellow-500', 'text-white');
+                    notification.innerHTML = `<i class="fa fa-warning mr-2"></i> ${message}`;
+                    break;
+                default:
+                    notification.classList.add('bg-blue-500', 'text-white');
+                    notification.innerHTML = `<i class="fa fa-info-circle mr-2"></i> ${message}`;
+            }
+            
+            // 3秒后隐藏
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // 页面加载时初始化
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
